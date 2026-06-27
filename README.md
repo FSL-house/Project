@@ -16,7 +16,7 @@
 
 | 项目名 | 类型 | 技术栈 | 简介 |
 |---|---|---|---|
-| `FilmRadar` | Web 推荐系统 | Node.js、Express、MySQL、Spark ALS、ECharts | 一个电影推荐系统，支持评分、电影浏览、推荐结果展示与可视化分析。 |
+| `FilmRadar` | 跨平台部署的电影推荐 Web 应用系统 | Node.js、Express、MySQL、Spark ALS、ECharts | 一个电影推荐系统，支持评分、电影浏览、推荐结果展示与可视化分析。 |
 | `STM32_SmartLight_Protect` | 嵌入式项目 | STM32、ADC、PWM、OLED、蓝牙、EEPROM | 基于 STM32 的智能人体感应照明与过热保护综合系统。 |
 | `campus-second-hand` | 前后端分离 Web 项目 | Spring Boot、MyBatis-Plus、MySQL、Vue3、Element Plus | 一个校园二手交易平台，支持登录、商品发布、订单、收藏和后台管理。 |
 
