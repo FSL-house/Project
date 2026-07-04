@@ -1,31 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
-import ProductList from '../views/ProductList.vue'
-import ProductDetail from '../views/ProductDetail.vue'
-import ProductAdd from '../views/ProductAdd.vue'
-import MyOrders from '../views/MyOrders.vue'
-import MyFavorites from '../views/MyFavorites.vue'
-import Admin from '../views/Admin.vue'
 import { getToken, getUserInfo } from '../utils/auth'
 
 const routes = [
-  { path: '/', name: 'home', component: Home },
-  { path: '/login', name: 'login', component: Login },
-  { path: '/register', name: 'register', component: Register },
-  { path: '/products', name: 'products', component: ProductList },
-  { path: '/product/:id', name: 'product-detail', component: ProductDetail },
-  { path: '/product/add', name: 'product-add', component: ProductAdd, meta: { requiresAuth: true } },
-  { path: '/orders', name: 'orders', component: MyOrders, meta: { requiresAuth: true } },
-  { path: '/favorites', name: 'favorites', component: MyFavorites, meta: { requiresAuth: true } },
-  { path: '/admin', name: 'admin', component: Admin, meta: { requiresAuth: true, requiresAdmin: true } }
+  { path: '/', name: 'home', component: () => import('../views/Home.vue') },
+  { path: '/login', name: 'login', component: () => import('../views/Login.vue') },
+  { path: '/register', name: 'register', component: () => import('../views/Register.vue') },
+  { path: '/products', name: 'products', component: () => import('../views/ProductList.vue') },
+  { path: '/product/:id', name: 'product-detail', component: () => import('../views/ProductDetail.vue') },
+  { path: '/product/add', name: 'product-add', component: () => import('../views/ProductAdd.vue'), meta: { requiresAuth: true } },
+  { path: '/orders', name: 'orders', component: () => import('../views/MyOrders.vue'), meta: { requiresAuth: true } },
+  { path: '/favorites', name: 'favorites', component: () => import('../views/MyFavorites.vue'), meta: { requiresAuth: true } },
+  { path: '/admin', name: 'admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFound.vue') }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  // 切换页面后自动回到顶部，让浏览体验更自然。
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 // 路由前置守卫。

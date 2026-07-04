@@ -27,6 +27,12 @@ public class FileController {
     private String uploadPath;
 
     /**
+     * 图片访问前缀。
+     */
+    @Value("${file.access-url-prefix}")
+    private String accessUrlPrefix;
+
+    /**
      * 上传商品图片接口。
      *
      * @param file 前端上传的图片文件
@@ -46,15 +52,15 @@ public class FileController {
         }
 
         File directory = new File(uploadPath);
-        if (!directory.exists()) {
-            directory.mkdirs();
+        if (!directory.exists() && !directory.mkdirs()) {
+            return Result.fail("创建上传目录失败");
         }
 
         String fileName = UUID.randomUUID().toString().replace("-", "") + suffix;
         File targetFile = new File(directory, fileName);
         file.transferTo(targetFile);
 
-        return Result.success("/images/" + fileName);
+        return Result.success(buildFileAccessUrl(fileName));
     }
 
     /**
@@ -82,5 +88,16 @@ public class FileController {
                 || ".png".equals(suffix)
                 || ".gif".equals(suffix)
                 || ".webp".equals(suffix);
+    }
+
+    /**
+     * 生成图片访问路径。
+     *
+     * @param fileName 图片文件名
+     * @return 图片访问路径
+     */
+    private String buildFileAccessUrl(String fileName) {
+        String normalizedPrefix = accessUrlPrefix.endsWith("/") ? accessUrlPrefix : accessUrlPrefix + "/";
+        return normalizedPrefix + fileName;
     }
 }

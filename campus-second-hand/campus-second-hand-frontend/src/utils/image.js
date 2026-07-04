@@ -1,3 +1,5 @@
+const fileBaseUrl = (import.meta.env.VITE_FILE_BASE_URL || '').replace(/\/$/, '')
+
 // 生成商品占位图。
 // 使用本地 data URL，避免依赖外网占位图服务导致加载慢或加载失败。
 function buildPlaceholderSvg(title = '商品图片') {
@@ -29,10 +31,6 @@ function buildDetailPlaceholderSvg(title = '商品图片') {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
-// 处理商品图片地址：
-// 1. 兼容本地图片路径
-// 2. 修正常见手误，如 .jps -> .jpg
-// 3. 遇到外网占位图时直接换成本地 data 占位图，避免加载慢
 const placeholderImageMap = {
   JavaBook: '/images/java-book.svg',
   PowerBank: '/images/power-bank.svg',
@@ -51,6 +49,8 @@ function getMappedPlaceholderImage(image) {
   return placeholderImageMap[text] || ''
 }
 
+// 统一处理商品图片地址。
+// 兼容 data URL、完整 URL、后端返回的 /uploads/xxx.png 和手动填写的相对路径。
 export function resolveProductImage(image, title, mode = 'card') {
   const fallback = mode === 'detail' ? buildDetailPlaceholderSvg(title) : buildPlaceholderSvg(title)
 
@@ -68,11 +68,15 @@ export function resolveProductImage(image, title, mode = 'card') {
     return getMappedPlaceholderImage(finalImage) || fallback
   }
 
-  if (finalImage.startsWith('data:') || finalImage.startsWith('http://') || finalImage.startsWith('https://') || finalImage.startsWith('/')) {
+  if (finalImage.startsWith('data:') || finalImage.startsWith('http://') || finalImage.startsWith('https://')) {
     return finalImage
   }
 
-  return `/${finalImage}`
+  if (finalImage.startsWith('/')) {
+    return `${fileBaseUrl}${finalImage}`
+  }
+
+  return `${fileBaseUrl}/${finalImage}`
 }
 
 export function getFallbackImage(title, mode = 'card') {

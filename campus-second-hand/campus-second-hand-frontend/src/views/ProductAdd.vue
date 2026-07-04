@@ -1,70 +1,95 @@
 <template>
   <div class="page-container">
-    <el-card shadow="never" style="max-width: 800px; margin: 0 auto;">
-      <h1 class="page-title">发布商品</h1>
+    <section class="page-section">
+      <div class="section-head">
+        <div>
+          <h1 class="page-title">发布商品</h1>
+          <p class="page-subtitle">支持填写商品基础信息、上传图片并生成预览，适合作为完整业务流程中的发布入口。</p>
+        </div>
+      </div>
+    </section>
 
-      <el-alert
-        title="支持直接上传商品图片，上传成功后会自动回填图片地址"
-        type="info"
-        :closable="false"
-        style="margin-bottom: 20px"
-      >
-        <template #default>
-          <div>如果你已经把图片放到 <b>public/images</b> 目录，也可以继续手动填写，例如 <b>/images/keyboard.jpg</b>。</div>
-          <div style="margin-top: 6px">单张图片建议不超过 5MB，常见的 jpg、jpeg、png、gif、webp 都可以上传。</div>
-        </template>
-      </el-alert>
+    <section class="page-section form-grid">
+      <div class="surface surface-pad">
+        <el-form :model="form" label-width="92px">
+          <el-form-item label="商品标题">
+            <el-input v-model="form.title" placeholder="例如：九成新 Java 教材、闲置台灯、二手耳机" />
+          </el-form-item>
 
-      <el-form :model="form" label-width="100px">
-        <el-form-item label="商品标题">
-          <el-input v-model="form.title" placeholder="请输入商品标题" />
-        </el-form-item>
+          <el-form-item label="商品价格">
+            <el-input-number v-model="form.price" :min="0" :precision="2" :step="1" style="width: 220px" />
+          </el-form-item>
 
-        <el-form-item label="商品价格">
-          <el-input-number v-model="form.price" :min="0" :precision="2" :step="1" style="width: 220px" />
-        </el-form-item>
+          <el-form-item label="商品分类">
+            <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 220px">
+              <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+            </el-select>
+          </el-form-item>
 
-        <el-form-item label="商品分类">
-          <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 220px">
-            <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
+          <el-form-item label="图片地址">
+            <el-input v-model="form.image" placeholder="可手动填写 /images/xxx.jpg，也可通过下方上传自动生成" />
+          </el-form-item>
 
-        <el-form-item label="图片地址">
-          <el-input v-model="form.image" placeholder="请输入图片地址，例如 /images/keyboard.jpg" />
-        </el-form-item>
+          <el-form-item label="上传图片">
+            <div class="upload-wrapper">
+              <el-upload
+                action="#"
+                :auto-upload="false"
+                :show-file-list="false"
+                accept="image/*"
+                @change="handleSelectImage"
+              >
+                <el-button>选择图片</el-button>
+              </el-upload>
+              <el-button type="primary" :loading="uploading" @click="handleUploadImage">上传图片</el-button>
+              <span class="upload-tip">{{ selectedFileName || '暂未选择图片' }}</span>
+            </div>
+          </el-form-item>
 
-        <el-form-item label="上传图片">
-          <div class="upload-wrapper">
-            <el-upload
-              action="#"
-              :auto-upload="false"
-              :show-file-list="false"
-              accept="image/*"
-              @change="handleSelectImage"
-            >
-              <el-button>选择图片</el-button>
-            </el-upload>
-            <el-button type="primary" :loading="uploading" @click="handleUploadImage">上传到项目</el-button>
-            <span class="upload-tip">{{ selectedFileName || '暂未选择图片' }}</span>
-          </div>
+          <el-form-item label="商品描述">
+            <el-input
+              v-model="form.description"
+              type="textarea"
+              :rows="7"
+              placeholder="建议填写商品成色、购买时间、是否有包装、是否支持当面验货等信息"
+            />
+          </el-form-item>
 
-          <div v-if="form.image" class="preview-box">
-            <img :src="previewImage" alt="商品预览图" class="preview-image" />
-            <div class="preview-path">{{ form.image }}</div>
-          </div>
-        </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="large" @click="handleSubmit">提交发布</el-button>
+            <el-button size="large" @click="router.push('/products')">返回广场</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
 
-        <el-form-item label="商品描述">
-          <el-input v-model="form.description" type="textarea" :rows="5" placeholder="请输入商品描述" />
-        </el-form-item>
+      <div class="surface surface-pad preview-panel">
+        <div class="preview-head">
+          <h3>发布预览</h3>
+          <p>提前检查图片、标题、价格和描述，避免发布后信息不完整。</p>
+        </div>
 
-        <el-form-item>
-          <el-button type="primary" @click="handleSubmit">提交发布</el-button>
-          <el-button @click="router.push('/products')">返回商品列表</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        <img :src="previewImage" alt="商品预览图" class="preview-image" />
+
+        <div class="preview-title">{{ form.title || '这里会显示商品标题' }}</div>
+        <div class="preview-price">{{ formatPrice(form.price) }}</div>
+
+        <div class="preview-meta">
+          <span>{{ currentCategoryName }}</span>
+          <span>{{ form.image || '等待上传商品图片' }}</span>
+        </div>
+
+        <div class="preview-desc">{{ form.description || '这里会显示商品描述。建议说明商品成色、购买时间、转让原因和交易方式。' }}</div>
+
+        <div class="tips-box">
+          <div class="tips-title">发布建议</div>
+          <ul>
+            <li>标题尽量明确，例如“95 新充电宝”比“便宜卖”更容易被搜索到。</li>
+            <li>图片建议使用实拍图，发布前先确认能正常预览。</li>
+            <li>描述里补充成色、交易地点和可交易时间，转化率会更高。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -74,6 +99,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { uploadProductImage } from '../api/file'
 import { addProduct, getCategoryList } from '../api/product'
+import { formatPrice } from '../utils/display'
 import { resolveProductImage } from '../utils/image'
 
 const router = useRouter()
@@ -90,12 +116,19 @@ const form = reactive({
   categoryId: ''
 })
 
+const currentCategoryName = computed(() => {
+  const matched = categoryList.value.find((item) => item.id === form.categoryId)
+  return matched?.name || '未选择分类'
+})
+
+const previewImage = computed(() => resolveProductImage(form.image, form.title || '商品图片', 'card'))
+
 async function loadCategories() {
   const res = await getCategoryList()
   categoryList.value = res.data
 }
 
-// 选择图片后，先把文件保存在页面状态中，等用户点击上传。
+// 选择图片后，先把文件保存到页面状态中，等用户点击上传。
 function handleSelectImage(uploadFile) {
   const file = uploadFile.raw
 
@@ -132,9 +165,6 @@ async function handleUploadImage() {
   }
 }
 
-// 统一处理图片预览地址，兼容本地路径和默认占位图。
-const previewImage = computed(() => resolveProductImage(form.image, form.title || '商品图片', 'card'))
-
 async function handleSubmit() {
   if (selectedFile.value && !form.image) {
     await handleUploadImage()
@@ -154,6 +184,12 @@ onMounted(loadCategories)
 </script>
 
 <style scoped>
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 20px;
+}
+
 .upload-wrapper {
   display: flex;
   align-items: center;
@@ -162,26 +198,87 @@ onMounted(loadCategories)
 }
 
 .upload-tip {
-  color: #909399;
+  color: #667085;
   font-size: 14px;
 }
 
-.preview-box {
-  margin-top: 16px;
+.preview-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-head h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.preview-head p {
+  margin: 8px 0 0;
+  color: #667085;
+  line-height: 1.7;
 }
 
 .preview-image {
-  width: 220px;
-  height: 160px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  border: 1px solid #dcdfe6;
-  border-radius: 8px;
-  display: block;
+  margin-top: 18px;
+  border-radius: 14px;
+  background: #f8fafc;
 }
 
-.preview-path {
-  margin-top: 8px;
-  color: #606266;
+.preview-title {
+  margin-top: 18px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.preview-price {
+  margin-top: 10px;
+  font-size: 34px;
+  font-weight: 800;
+  color: #f56c6c;
+}
+
+.preview-meta {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #667085;
   word-break: break-all;
+}
+
+.preview-desc {
+  margin-top: 16px;
+  line-height: 1.9;
+  color: #475467;
+  white-space: pre-wrap;
+}
+
+.tips-box {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.tips-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.tips-box ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #667085;
+  line-height: 1.9;
+}
+
+@media (max-width: 980px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

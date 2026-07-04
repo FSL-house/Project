@@ -8,6 +8,7 @@
 
 campus-second-hand-backend/target/
 campus-second-hand-backend/.mvn/
+campus-second-hand-backend/uploads/
 
 campus-second-hand-frontend/node_modules/
 campus-second-hand-frontend/dist/
